@@ -366,7 +366,7 @@ void *load(void *args)
                         if (c == 1)
                         {
                             // grayscale -> rgb
-                            unsigned char *rgbdata = (unsigned char *)malloc(w * h * 3);
+                            unsigned char *rgbdata = (unsigned char *)malloc((size_t)w * h * 3);
                             if (rgbdata)
                             {
                                 for (int i = 0; i < w * h; i++)
@@ -384,7 +384,7 @@ void *load(void *args)
                         else if (c == 2)
                         {
                             // grayscale + alpha -> rgba
-                            unsigned char *rgbadata = (unsigned char *)malloc(w * h * 4);
+                            unsigned char *rgbadata = (unsigned char *)malloc((size_t)w * h * 4);
                             if (rgbadata)
                             {
                                 for (int i = 0; i < w * h; i++)
@@ -548,7 +548,7 @@ void resize_output_image(Task &v, const SaveThreadParams *stp)
     stbir_pixel_layout layout = static_cast<stbir_pixel_layout>(c);
 
     // Create a new buffer for the resized image
-    unsigned char *resizedData = (unsigned char *)malloc(resizeWidth * resizeHeight * c);
+    unsigned char *resizedData = (unsigned char *)malloc((size_t)resizeWidth * resizeHeight * c);
 
     // Resize the image using stb_image_resize
     stbir_resize_uint8_srgb((unsigned char *)v.outimage.data, v.outimage.w, v.outimage.h, 0, resizedData, resizeWidth, resizeHeight, 0, layout);
@@ -594,7 +594,7 @@ void scale_output_image(Task &v, const SaveThreadParams *stp)
 
     stbir_pixel_layout layout = static_cast<stbir_pixel_layout>(c);
     // Create a new buffer for the resized image
-    unsigned char *resizedData = (unsigned char *)malloc(outputWidth * outputHeight * c);
+    unsigned char *resizedData = (unsigned char *)malloc((size_t)outputWidth * outputHeight * c);
     stbir_resize_uint8_srgb((unsigned char *)v.outimage.data, v.outimage.w, v.outimage.h, 0, resizedData, outputWidth, outputHeight, 0, layout);
     
     // Free the old output image data only if it was malloc'd

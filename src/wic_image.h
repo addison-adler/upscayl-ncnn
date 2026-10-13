@@ -105,14 +105,14 @@ unsigned char *wic_decode_image(const wchar_t *filepath, int *w, int *h, int *c)
     if (lock->GetStride((UINT *)&stride))
         goto RETURN;
 
-    bgrdata = (unsigned char *)malloc(width * height * channels);
+    bgrdata = (unsigned char *)malloc((size_t)width * height * channels);
     if (!bgrdata)
         goto RETURN;
 
     for (int y = 0; y < height; y++)
     {
-        const unsigned char *ptr = data + y * stride;
-        unsigned char *bgrptr = bgrdata + y * width * channels;
+        const unsigned char *ptr = data + (size_t)y * stride;
+        unsigned char *bgrptr = bgrdata + (size_t)y * width * channels;
         memcpy(bgrptr, ptr, width * channels);
     }
 
@@ -180,18 +180,18 @@ int wic_encode_image(const wchar_t *filepath, int w, int h, int c, void *bgrdata
     if (!IsEqualGUID(format, c == 4 ? GUID_WICPixelFormat32bppBGRA : GUID_WICPixelFormat24bppBGR))
         goto RETURN;
 
-    data = (unsigned char *)malloc(h * stride);
+    data = (unsigned char *)malloc((size_t)h * stride);
     if (!data)
         goto RETURN;
 
     for (int y = 0; y < h; y++)
     {
-        const unsigned char *bgrptr = (const unsigned char *)bgrdata + y * w * c;
-        unsigned char *ptr = data + y * stride;
+        const unsigned char *bgrptr = (const unsigned char *)bgrdata + (size_t)y * w * c;
+        unsigned char *ptr = data + (size_t)y * stride;
         memcpy(ptr, bgrptr, w * c);
     }
 
-    if (frame->WritePixels(h, stride, h * stride, data))
+    if (frame->WritePixels(h, stride, (UINT)((size_t)h * stride), data))
         goto RETURN;
 
     if (frame->Commit())
@@ -226,14 +226,14 @@ int wic_encode_jpeg_image(const wchar_t *filepath, int w, int h, int c, void *bg
     if (c == 4)
     {
         // Convert RGBA to RGB by removing alpha channel
-        rgbdata = (unsigned char *)malloc(w * h * 3);
+        rgbdata = (unsigned char *)malloc((size_t)w * h * 3);
         if (!rgbdata)
             return 0;
 
         const unsigned char *src = (const unsigned char *)bgrdata;
         unsigned char *dst = rgbdata;
 
-        for (int i = 0; i < w * h; i++)
+        for (size_t i = 0; i < (size_t)w * h; i++)
         {
             // Copy BGR channels, skip alpha
             dst[0] = src[0]; // B
@@ -301,18 +301,18 @@ int wic_encode_jpeg_image(const wchar_t *filepath, int w, int h, int c, void *bg
     if (!IsEqualGUID(format, GUID_WICPixelFormat24bppBGR))
         goto RETURN;
 
-    data = (unsigned char *)malloc(h * stride);
+    data = (unsigned char *)malloc((size_t)h * stride);
     if (!data)
         goto RETURN;
 
     for (int y = 0; y < h; y++)
     {
-        const unsigned char *bgrptr = (const unsigned char *)bgrdata + y * w * c;
-        unsigned char *ptr = data + y * stride;
+        const unsigned char *bgrptr = (const unsigned char *)bgrdata + (size_t)y * w * c;
+        unsigned char *ptr = data + (size_t)y * stride;
         memcpy(ptr, bgrptr, w * c);
     }
 
-    if (frame->WritePixels(h, stride, h * stride, data))
+    if (frame->WritePixels(h, stride, (UINT)((size_t)h * stride), data))
         goto RETURN;
 
     if (frame->Commit())
