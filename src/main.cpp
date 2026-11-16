@@ -652,8 +652,11 @@ bool resize_output_image(Task &v, const SaveThreadParams *stp)
     if (!resizedData)
         return false;
 
-    // Resize the image using stb_image_resize
-    if (!stbir_resize_uint8_srgb((unsigned char *)v.outimage.data, v.outimage.w, v.outimage.h, 0, resizedData, resizeWidth, resizeHeight, 0, layout))
+    // resizemodes[] is in stbir_filter order, so the parsed index is the filter
+    stbir_filter filter = static_cast<stbir_filter>(stp->resizeMode);
+
+    // Same type and edge mode as stbir_resize_uint8_srgb, plus the requested filter
+    if (!stbir_resize((unsigned char *)v.outimage.data, v.outimage.w, v.outimage.h, 0, resizedData, resizeWidth, resizeHeight, 0, layout, STBIR_TYPE_UINT8_SRGB, STBIR_EDGE_CLAMP, filter))
     {
         free(resizedData);
         return false;
