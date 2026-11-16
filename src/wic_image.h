@@ -4,6 +4,32 @@
 // image decoder and encoder with WIC
 #include <wincodec.h>
 
+// Asks WIC rather than listing formats, so 16-bit and grey+alpha sources keep their alpha.
+// Indexed formats are left to the palette check, since their format reports transparency even when the palette is opaque.
+static BOOL wic_format_has_alpha(IWICImagingFactory *factory, REFWICPixelFormatGUID pixel_format)
+{
+    IWICComponentInfo *component = 0;
+    IWICPixelFormatInfo2 *format_info = 0;
+    WICPixelFormatNumericRepresentation numeric = WICPixelFormatNumericRepresentationUnspecified;
+    BOOL has_alpha = FALSE;
+
+    if (factory->CreateComponentInfo(pixel_format, &component) == S_OK &&
+        component->QueryInterface(IID_PPV_ARGS(&format_info)) == S_OK &&
+        format_info->GetNumericRepresentation(&numeric) == S_OK &&
+        numeric != WICPixelFormatNumericRepresentationIndexed)
+    {
+        if (format_info->SupportsTransparency(&has_alpha) != S_OK)
+            has_alpha = FALSE;
+    }
+
+    if (format_info)
+        format_info->Release();
+    if (component)
+        component->Release();
+
+    return has_alpha;
+}
+
 unsigned char *wic_decode_image(const wchar_t *filepath, int *w, int *h, int *c)
 {
     IWICImagingFactory *factory = 0;
@@ -63,14 +89,7 @@ unsigned char *wic_decode_image(const wchar_t *filepath, int *w, int *h, int *c)
     }
     else
     {
-        // Check if the pixel format itself has alpha
-        if (IsEqualGUID(pixel_format, GUID_WICPixelFormat32bppBGRA) ||
-            IsEqualGUID(pixel_format, GUID_WICPixelFormat32bppRGBA) ||
-            IsEqualGUID(pixel_format, GUID_WICPixelFormat32bppPBGRA) ||
-            IsEqualGUID(pixel_format, GUID_WICPixelFormat32bppPRGBA))
-        {
-            has_alpha = TRUE;
-        }
+        has_alpha = wic_format_has_alpha(factory, pixel_format);
     }
 
     // Choose appropriate output format based on alpha detection
